@@ -60,3 +60,6 @@ replay_pid*
 
 # Draw.io
 *.drawio.png.bkp
+
+# Custom keys
+**/keys/*
