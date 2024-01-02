@@ -130,3 +130,35 @@ module "rds" {
 
   tags = var.tags
 }
+
+# module "db" {
+#   source  = "terraform-aws-modules/rds-aurora/aws"
+#   version = "~> 4.0"  # Use an appropriate module version
+
+#   name             = ""
+#   engine           = "aurora-postgresql"
+#   engine_version   = "15.3"
+#   instance_class   = "db.t4g.medium"
+#   vpc_id           = ""
+#   subnets          = ["", ""]
+#   replica_count    = 2
+#   allowed_security_groups = [""]
+#   create_security_group = false
+#   username         = ""
+#   password         = ""
+#   storage_encrypted= false
+
+#   # Ensure subnets are in different availability zones
+#   db_subnet_group_name = aws_db_subnet_group.example.name
+# }
+
+# # DB Subnet Group
+# resource "aws_db_subnet_group" "example" {
+#   name       = "my-db-subnet-group"
+#   subnet_ids = ["", "]  # Ensure these subnets are in different AZs
+# }
+
+# output "cluster_endpoint" {
+#   description = "The endpoint for the Aurora cluster"
+#   value       = module.db.this_rds_cluster_endpoint
+# }
