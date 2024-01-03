@@ -18,8 +18,8 @@ variable "private_subnet_cidrs" {
   description = "The private subnets CIDR blocks."
   type        = list(string)
   default = [
-    "10.0.0.0/18",
-    "10.0.128.0/18"
+    "10.0.128.0/18",
+    "10.0.192.0/18",
   ]
 }
 
@@ -27,8 +27,8 @@ variable "public_subnet_cidrs" {
   description = "The public subnets CIDR blocks."
   type        = list(string)
   default = [
+    "10.0.0.0/18",
     "10.0.64.0/18",
-    "10.0.192.0/18"
   ]
 }
 
@@ -64,41 +64,79 @@ variable "public_key_path" {
 # RDS
 ################################################################################
 
-variable "engine" {
-  description = "TThe DB engine to use."
+variable "use_aurora" {
+  description = "Set to true for using Amazon Aurora instead of Amazon RDS."
+  type        = bool
+  default     = true
+}
+
+variable "rds_engine" {
+  description = "The DB engine to use."
   type        = string
   default     = "postgres"
 }
 
-variable "engine_version" {
+variable "rds_engine_version" {
   description = "The DB engine version to use."
   type        = string
   default     = "14"
 }
 
-variable "instance_class" {
+variable "rds_instance_class" {
   description = "The class of the RDS instance."
   type        = string
   default     = "db.t4g.micro"
 }
 
-variable "storage_type" {
+variable "rds_port" {
+  description = "The port on which the DB accepts connections."
+  type        = number
+  default     = 5432
+}
+
+variable "rds_storage_type" {
   description = "One of 'standard' (magnetic), 'gp2' (general purpose SSD), 'gp3' (general purpose SSD that needs iops independently) or 'io1' (provisioned IOPS SSD)."
   type        = string
   default     = "gp2"
 }
 
-variable "allocated_storage" {
+variable "rds_allocated_storage" {
   description = "The amount of storage (in gigabytes) that is initially allocated for the DB."
   type        = number
   default     = 20
 }
 
-variable "max_allocated_storage" {
+variable "rds_max_allocated_storage" {
   description = "When configured, the upper limit to which Amazon RDS can automatically scale the storage of the DB instance."
   type        = number
   default     = 30
 }
+
+################################################################################
+# Aurora
+################################################################################
+
+variable "aurora_engine" {
+  description = "The DB engine to use."
+  type        = string
+  default     = "aurora-postgresql"
+}
+
+variable "aurora_engine_version" {
+  description = "The DB engine version to use."
+  type        = string
+  default     = "15.3"
+}
+
+variable "aurora_instance_class" {
+  description = "The class of the Aurora instance."
+  type        = string
+  default     = "db.t4g.medium"
+}
+
+################################################################################
+# DB Common
+################################################################################
 
 variable "username" {
   description = "Username for the master DB user."
@@ -110,14 +148,8 @@ variable "password" {
   type        = string
 }
 
-variable "rds_port" {
-  description = "The port on which the DB accepts connections."
-  type        = number
-  default     = 5432
-}
-
 ################################################################################
-# All
+# Common
 ################################################################################
 
 variable "tags" {

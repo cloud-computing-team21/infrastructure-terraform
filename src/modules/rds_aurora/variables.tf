@@ -1,13 +1,7 @@
 variable "identifier" {
-  description = "The name of the RDS instance."
+  description = "The cluster identifier."
   type        = string
-  default     = "postgres"
-}
-
-variable "db_name" {
-  description = "The name of the database to create when the DB instance is created."
-  type        = string
-  default     = "postgres"
+  default     = null
 }
 
 variable "engine" {
@@ -22,10 +16,10 @@ variable "engine_version" {
   default     = "14"
 }
 
-variable "instance_class" {
-  description = "The class of the RDS instance."
-  type        = string
-  default     = "db.t4g.micro"
+variable "instance_classes" {
+  description = "The classes of the cluster instances."
+  type        = list(string)
+  default     = []
 }
 
 variable "username" {
@@ -39,7 +33,7 @@ variable "password" {
 }
 
 variable "availability_zones" {
-  description = "List of availability zones for the read replicas."
+  description = "List of EC2 Availability Zones for the DB cluster storage where DB cluster instances can be created."
   type        = list(string)
   default     = []
 }
@@ -59,25 +53,7 @@ variable "db_subnet_group_name" {
 variable "vpc_security_group_ids" {
   description = "List of VPC security groups to associate."
   type        = list(string)
-  default     = []
-}
-
-variable "storage_type" {
-  description = "One of 'standard' (magnetic), 'gp2' (general purpose SSD), 'gp3' (general purpose SSD that needs iops independently) or 'io1' (provisioned IOPS SSD)."
-  type        = string
-  default     = "gp2"
-}
-
-variable "allocated_storage" {
-  description = "The amount of storage (in gigabytes) that is initially allocated for the DB."
-  type        = number
-  default     = 20
-}
-
-variable "max_allocated_storage" {
-  description = "When configured, the upper limit to which Amazon RDS can automatically scale the storage of the DB instance."
-  type        = number
-  default     = 30
+  default     = null
 }
 
 variable "backup_retention_period" {
@@ -95,5 +71,5 @@ variable "backup_window" {
 variable "tags" {
   description = "A map of tags to add to all resources."
   type        = map(string)
-  default     = {}
+  default     = null
 }

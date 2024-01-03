@@ -5,44 +5,44 @@ resource "aws_db_instance" "master" {
   engine         = var.engine
   engine_version = var.engine_version
   instance_class = var.instance_class
-  storage_type   = var.storage_type
 
   username = var.username
   password = var.password
 
-  allocated_storage     = var.allocated_storage
-  max_allocated_storage = var.max_allocated_storage
-  port                  = var.port
-
+  port                   = var.port
   db_subnet_group_name   = var.db_subnet_group_name
   vpc_security_group_ids = var.vpc_security_group_ids
 
-  backup_window = var.backup_window
+  storage_type          = var.storage_type
+  allocated_storage     = var.allocated_storage
+  max_allocated_storage = var.max_allocated_storage
+  storage_encrypted     = false
 
   backup_retention_period = var.backup_retention_period
+  backup_window           = var.backup_window
   skip_final_snapshot     = true
-  storage_encrypted       = false
 
-  # Standby replica
   multi_az = true
 }
 
 resource "aws_db_instance" "read_replica" {
-  count = length(var.replica_azs)
+  count = length(var.availability_zones)
 
-  identifier = "${var.identifier}-read-replica"
-
+  identifier          = "${var.identifier}-read-replica"
   replicate_source_db = aws_db_instance.master.id
 
-  instance_class = var.instance_class
-
+  availability_zone      = var.availability_zones[count.index]
   db_subnet_group_name   = var.db_subnet_group_name
   vpc_security_group_ids = var.vpc_security_group_ids
 
-  backup_retention_period = 0
+  instance_class = var.instance_class
 
-  skip_final_snapshot = true
-  storage_encrypted   = false
+  storage_type          = var.storage_type
+  allocated_storage     = var.allocated_storage
+  max_allocated_storage = var.max_allocated_storage
+  storage_encrypted     = false
 
-  availability_zone = var.replica_azs[count.index]
+  backup_retention_period = var.backup_retention_period
+  backup_window           = var.backup_window
+  skip_final_snapshot     = true
 }
