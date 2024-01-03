@@ -1,7 +1,3 @@
-provider "aws" {
-  region = var.region
-}
-
 ################################################################################
 # VPC
 ################################################################################
@@ -12,7 +8,7 @@ module "vpc" {
   name = "vpc"
   cidr = var.vpc_cidr
 
-  azs             = slice(data.aws_availability_zones.available.names, 0, var.az_count)
+  azs             = local.availability_zones
   public_subnets  = var.public_subnet_cidrs
   private_subnets = var.private_subnet_cidrs
 
@@ -104,61 +100,58 @@ module "security_group_rds" {
 module "rds" {
   source = "./modules/rds"
 
-  identifier = "rds"
-  db_name    = "postgresql"
+  count = !var.use_aurora ? 1 : 0
 
-  engine         = var.engine
-  engine_version = var.engine_version
-  instance_class = var.instance_class
-  storage_type   = var.storage_type
+  identifier = "rds"
+  db_name    = "rds-db"
+
+  engine         = var.rds_engine
+  engine_version = var.rds_engine_version
+  instance_class = var.rds_instance_class
 
   username = var.username
   password = var.password
 
-  allocated_storage     = var.allocated_storage
-  max_allocated_storage = var.max_allocated_storage
-  port                  = var.rds_port
-
+  availability_zones     = local.availability_zones
+  port                   = var.rds_port
   db_subnet_group_name   = aws_db_subnet_group.this.name
   vpc_security_group_ids = [module.security_group_rds.security_group_id]
 
-  backup_window = "03:00-06:00"
+  storage_type          = var.rds_storage_type
+  allocated_storage     = var.rds_allocated_storage
+  max_allocated_storage = var.rds_max_allocated_storage
 
   backup_retention_period = 1
-
-  replica_azs = slice(data.aws_availability_zones.available.names, 0, var.az_count)
+  backup_window           = "03:00-06:00"
 
   tags = var.tags
 }
 
-# module "db" {
-#   source  = "terraform-aws-modules/rds-aurora/aws"
-#   version = "~> 4.0"  # Use an appropriate module version
+################################################################################
+# Aurora
+################################################################################
 
-#   name             = ""
-#   engine           = "aurora-postgresql"
-#   engine_version   = "15.3"
-#   instance_class   = "db.t4g.medium"
-#   vpc_id           = ""
-#   subnets          = ["", ""]
-#   replica_count    = 2
-#   allowed_security_groups = [""]
-#   create_security_group = false
-#   username         = ""
-#   password         = ""
-#   storage_encrypted= false
+module "rds_aurora" {
+  source = "./modules/rds_aurora"
 
-#   # Ensure subnets are in different availability zones
-#   db_subnet_group_name = aws_db_subnet_group.example.name
-# }
+  count = var.use_aurora ? 1 : 0
 
-# # DB Subnet Group
-# resource "aws_db_subnet_group" "example" {
-#   name       = "my-db-subnet-group"
-#   subnet_ids = ["", "]  # Ensure these subnets are in different AZs
-# }
+  identifier = "rds-aurora"
 
-# output "cluster_endpoint" {
-#   description = "The endpoint for the Aurora cluster"
-#   value       = module.db.this_rds_cluster_endpoint
-# }
+  engine           = var.aurora_engine
+  engine_version   = var.aurora_engine_version
+  instance_classes = [for az in local.availability_zones : var.aurora_instance_class]
+
+  username = var.username
+  password = var.password
+
+  availability_zones     = local.availability_zones
+  port                   = var.rds_port
+  db_subnet_group_name   = aws_db_subnet_group.this.name
+  vpc_security_group_ids = [module.security_group_rds.security_group_id]
+
+  backup_retention_period = 1
+  backup_window           = "03:00-06:00"
+
+  tags = var.tags
+}
