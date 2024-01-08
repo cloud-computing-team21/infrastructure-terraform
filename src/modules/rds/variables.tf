@@ -38,8 +38,14 @@ variable "password" {
   type        = string
 }
 
+variable "read_replica_count" {
+  description = "The number of read replicas to configure."
+  type        = number
+  default     = 0
+}
+
 variable "availability_zones" {
-  description = "List of availability zones for the read replicas."
+  description = "List of availability zones of the defined read replicas."
   type        = list(string)
   default     = []
 }
