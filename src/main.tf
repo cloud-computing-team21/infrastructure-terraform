@@ -19,7 +19,7 @@ module "vpc" {
 }
 
 ################################################################################
-# EC2
+# EC2 Bastion Host
 ################################################################################
 
 resource "aws_key_pair" "this" {
@@ -105,9 +105,10 @@ module "rds" {
   identifier = "rds"
   db_name    = "rds-db"
 
-  engine         = var.rds_engine
-  engine_version = var.rds_engine_version
-  instance_class = var.rds_instance_class
+  engine             = var.rds_engine
+  engine_version     = var.rds_engine_version
+  instance_class     = var.rds_instance_class
+  read_replica_count = var.rds_read_replica_count
 
   username = var.username
   password = var.password

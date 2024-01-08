@@ -39,7 +39,7 @@ variable "az_count" {
 }
 
 ################################################################################
-# EC2
+# EC2 Bastion Host
 ################################################################################
 
 variable "ingress_cidr_blocks" {
@@ -86,6 +86,12 @@ variable "rds_instance_class" {
   description = "The class of the RDS instance."
   type        = string
   default     = "db.t4g.micro"
+}
+
+variable "rds_read_replica_count" {
+  description = "The number of read replicas to configure in the RDS."
+  type        = number
+  default     = 0
 }
 
 variable "rds_port" {

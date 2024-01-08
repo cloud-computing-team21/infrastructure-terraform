@@ -26,7 +26,7 @@ resource "aws_db_instance" "master" {
 }
 
 resource "aws_db_instance" "read_replica" {
-  count = length(var.availability_zones)
+  count = var.read_replica_count
 
   identifier          = "${var.identifier}-read-replica"
   replicate_source_db = aws_db_instance.master.id
