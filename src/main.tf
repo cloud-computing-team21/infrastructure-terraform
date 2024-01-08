@@ -5,17 +5,22 @@
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
 
-  name = "vpc"
+  name = local.vpc_name
   cidr = var.vpc_cidr
 
   azs             = local.availability_zones
-  public_subnets  = var.public_subnet_cidrs
-  private_subnets = var.private_subnet_cidrs
+  public_subnets  = var.vpc_public_subnets
+  private_subnets = var.vpc_private_subnets
 
   enable_nat_gateway = true
   single_nat_gateway = true
 
-  tags = var.tags
+  tags = merge(
+    {
+      Name = local.vpc_name
+    },
+    var.tags
+  )
 }
 
 ################################################################################
@@ -23,12 +28,12 @@ module "vpc" {
 ################################################################################
 
 resource "aws_key_pair" "this" {
-  key_name   = "key-ec2"
-  public_key = file(var.public_key_path)
+  key_name   = local.bastion_key_name
+  public_key = file(var.bastion_public_key)
 
   tags = merge(
     {
-      Name = "key-ec2"
+      Name = local.bastion_key_name
     },
     var.tags
   )
@@ -37,30 +42,42 @@ resource "aws_key_pair" "this" {
 module "security_group_ec2" {
   source = "terraform-aws-modules/security-group/aws"
 
-  name   = "ec2"
+  name   = local.bastion_name
   vpc_id = module.vpc.vpc_id
 
-  ingress_cidr_blocks = var.ingress_cidr_blocks
+  ingress_cidr_blocks = var.bastion_ingress_cidr_blocks
   ingress_rules       = ["ssh-tcp", "all-icmp"]
   egress_rules        = ["all-all"]
 
-  tags = var.tags
+  tags = merge(
+    {
+      Name = local.bastion_name
+    },
+    var.tags
+  )
 }
 
 module "ec2" {
   source = "terraform-aws-modules/ec2-instance/aws"
 
-  name = "ec2"
+  name = local.bastion_name
 
   ami                         = data.aws_ami.ubuntu.id
-  instance_type               = var.instance_type
+  instance_type               = var.bastion_instance_type
   availability_zone           = element(data.aws_availability_zones.available.names, 0)
   subnet_id                   = element(module.vpc.public_subnets, 0)
   vpc_security_group_ids      = [module.security_group_ec2.security_group_id]
   key_name                    = aws_key_pair.this.key_name
   associate_public_ip_address = true
 
-  tags = var.tags
+  user_data = length(var.bastion_user_data_file) > 0 ? file(var.bastion_user_data_file) : ""
+
+  tags = merge(
+    {
+      Name = local.bastion_name
+    },
+    var.tags
+  )
 }
 
 ################################################################################
@@ -68,12 +85,12 @@ module "ec2" {
 ################################################################################
 
 resource "aws_db_subnet_group" "this" {
-  name       = "rds-subnet-group"
+  name       = local.rds_subnet_group_name
   subnet_ids = module.vpc.private_subnets
 
   tags = merge(
     {
-      Name = "subnet-group-rds"
+      Name = local.rds_subnet_group_name
     },
     var.tags
   )
@@ -82,7 +99,7 @@ resource "aws_db_subnet_group" "this" {
 module "security_group_rds" {
   source = "terraform-aws-modules/security-group/aws"
 
-  name   = "rds"
+  name   = local.rds_security_group_name
   vpc_id = module.vpc.vpc_id
 
   ingress_with_cidr_blocks = [
@@ -94,15 +111,20 @@ module "security_group_rds" {
     },
   ]
 
-  tags = var.tags
+  tags = merge(
+    {
+      Name = local.rds_security_group_name
+    },
+    var.tags
+  )
 }
 
 module "rds" {
   source = "./modules/rds"
 
-  count = !var.use_aurora ? 1 : 0
+  count = !var.db_use_aurora ? 1 : 0
 
-  identifier = "rds"
+  identifier = local.rds_name
   db_name    = "rds-db"
 
   engine             = var.rds_engine
@@ -110,8 +132,8 @@ module "rds" {
   instance_class     = var.rds_instance_class
   read_replica_count = var.rds_read_replica_count
 
-  username = var.username
-  password = var.password
+  username = var.db_username
+  password = var.db_password
 
   availability_zones     = local.availability_zones
   port                   = var.rds_port
@@ -125,7 +147,12 @@ module "rds" {
   backup_retention_period = 1
   backup_window           = "03:00-06:00"
 
-  tags = var.tags
+  tags = merge(
+    {
+      Name = local.rds_name
+    },
+    var.tags
+  )
 }
 
 ################################################################################
@@ -135,16 +162,16 @@ module "rds" {
 module "rds_aurora" {
   source = "./modules/rds_aurora"
 
-  count = var.use_aurora ? 1 : 0
+  count = var.db_use_aurora ? 1 : 0
 
-  identifier = "rds-aurora"
+  identifier = local.aurora_name
 
   engine           = var.aurora_engine
   engine_version   = var.aurora_engine_version
   instance_classes = [for az in local.availability_zones : var.aurora_instance_class]
 
-  username = var.username
-  password = var.password
+  username = var.db_username
+  password = var.db_password
 
   availability_zones     = local.availability_zones
   port                   = var.rds_port
@@ -154,5 +181,10 @@ module "rds_aurora" {
   backup_retention_period = 1
   backup_window           = "03:00-06:00"
 
-  tags = var.tags
+  tags = merge(
+    {
+      Name = local.aurora_name
+    },
+    var.tags
+  )
 }
