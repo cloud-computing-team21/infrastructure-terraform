@@ -1,8 +1,3 @@
-variable "region" {
-  description = "The selected AWS region."
-  type        = string
-  default     = "us-east-1"
-}
 
 ################################################################################
 # VPC
@@ -14,7 +9,7 @@ variable "vpc_cidr" {
   default     = "10.0.0.0/16"
 }
 
-variable "private_subnet_cidrs" {
+variable "vpc_private_subnets" {
   description = "The private subnets CIDR blocks."
   type        = list(string)
   default = [
@@ -23,7 +18,7 @@ variable "private_subnet_cidrs" {
   ]
 }
 
-variable "public_subnet_cidrs" {
+variable "vpc_public_subnets" {
   description = "The public subnets CIDR blocks."
   type        = list(string)
   default = [
@@ -32,7 +27,7 @@ variable "public_subnet_cidrs" {
   ]
 }
 
-variable "az_count" {
+variable "vpc_az_count" {
   description = "The number of Availability Zones in the VPC."
   type        = number
   default     = 2
@@ -42,33 +37,53 @@ variable "az_count" {
 # EC2 Bastion Host
 ################################################################################
 
-variable "ingress_cidr_blocks" {
-  description = "The CIDR block allowed for ingress connections to the EC2 instances."
-  type        = list(string)
-  default     = ["0.0.0.0/0"]
-}
-
-variable "instance_type" {
-  description = "The type of the EC2 instances."
-  type        = string
-  default     = "t4g.nano"
-}
-
-variable "public_key_path" {
+variable "bastion_public_key" {
   description = "The path of the public key to use for the EC2 instances"
   type        = string
   default     = null
 }
 
+variable "bastion_ingress_cidr_blocks" {
+  description = "The CIDR block allowed for ingress connections to the EC2 instances."
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
+variable "bastion_instance_type" {
+  description = "The type of the EC2 instances."
+  type        = string
+  default     = "t4g.nano"
+}
+
+variable "bastion_user_data_file" {
+  description = "An optional file to upload to the EC2 as user data."
+  type        = string
+  default     = ""
+}
+
 ################################################################################
-# RDS
+# DB Common
 ################################################################################
 
-variable "use_aurora" {
+variable "db_username" {
+  description = "Username for the master DB user."
+  type        = string
+}
+
+variable "db_password" {
+  description = "Password for the master DB user."
+  type        = string
+}
+
+variable "db_use_aurora" {
   description = "Set to true for using Amazon Aurora instead of Amazon RDS."
   type        = bool
   default     = true
 }
+
+################################################################################
+# RDS
+################################################################################
 
 variable "rds_engine" {
   description = "The DB engine to use."
@@ -141,22 +156,14 @@ variable "aurora_instance_class" {
 }
 
 ################################################################################
-# DB Common
-################################################################################
-
-variable "username" {
-  description = "Username for the master DB user."
-  type        = string
-}
-
-variable "password" {
-  description = "Password for the master DB user."
-  type        = string
-}
-
-################################################################################
 # Common
 ################################################################################
+
+variable "region" {
+  description = "The selected AWS region."
+  type        = string
+  default     = "us-east-1"
+}
 
 variable "tags" {
   description = "A map of tags to add to all resources."
