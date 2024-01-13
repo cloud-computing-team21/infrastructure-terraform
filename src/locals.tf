@@ -1,7 +1,9 @@
+# Availability zones.
 locals {
   availability_zones = slice(data.aws_availability_zones.available.names, 0, var.vpc_az_count)
 }
 
+# Resource names.
 locals {
   vpc_name                = "vpc"
   bastion_name            = "bastion-host"

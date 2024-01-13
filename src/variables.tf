@@ -78,7 +78,7 @@ variable "db_password" {
 variable "db_use_aurora" {
   description = "Set to true for using Amazon Aurora instead of Amazon RDS."
   type        = bool
-  default     = true
+  default     = false
 }
 
 ################################################################################

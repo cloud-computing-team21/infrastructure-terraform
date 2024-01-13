@@ -4,6 +4,7 @@ resource "aws_rds_cluster" "this" {
   engine         = var.engine
   engine_version = var.engine_version
 
+  # Database root credentials.
   master_username = var.username
   master_password = var.password
 
@@ -12,6 +13,7 @@ resource "aws_rds_cluster" "this" {
   db_subnet_group_name   = var.db_subnet_group_name
   vpc_security_group_ids = var.vpc_security_group_ids
 
+  # Storage and backup.
   storage_encrypted = false
 
   backup_retention_period = var.backup_retention_period
@@ -20,6 +22,7 @@ resource "aws_rds_cluster" "this" {
 }
 
 resource "aws_rds_cluster_instance" "this" {
+  # As many instances as availability zones, one per each.
   count = length(var.availability_zones)
 
   identifier         = "${aws_rds_cluster.this.id}-instance-${count.index}"
