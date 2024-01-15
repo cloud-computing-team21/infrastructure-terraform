@@ -45,7 +45,7 @@ The following commands validate and create the infrastructure, notice how we set
 > terraform apply -var='bastion_public_key=..\keys\terraform-rds' \
                   -var='bastion_ingress_cidr_blocks=["0.0.0.0/0"]' \
                   -var='db_username=root' \
-                  -var='db_password=CrearEC2pub' \
+                  -var='db_password=my_password' \
                   -auto-approve
 ```
 
