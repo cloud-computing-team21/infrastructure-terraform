@@ -1,4 +1,4 @@
-# cloud-computing-team21
+# infrastructure-terraform
 
 Terraform infrastructure for the Final Project of the [UPC Cloud Computing Architecture Postgraduate](https://www.talent.upc.edu/ing/estudis/formacio/curs/319401/postgraduate-course-cloud-computing-architecture/) course.
 
