@@ -8,7 +8,7 @@ The infrastructure consists of a single VPC with CIDR block of **10.0.0.0/16**, 
 
 The VPC's CIDR block is divided in two halfs. The first half **10.0.0.0/17** is used for public subnets, and the second half **10.0.128.0/17** for private subnets.
 
-Each half of the CIDR block is further divided among the number of subnets, two public and two private. The public ones having the blocks **10.0.0.0/18** and **10.0.64.0/18**, and the private ones having **10.0.128.0/18** and **10.0.192.0/18**.
+Each half of the CIDR block is further divided among the number of subnets, two public and two private. The public ones having the blocks **10.0.0.0/18** and **10.0.64.0/18**, and the private ones having **10.0.128.0/19**, **10.0.160.0/19**, **10.0.192.0/19** and **10.0.224.0/19**.
 
 This segregation of public and private networks gives more control over network traffic. It allows the implementation of different routing rules and policies for each network range.
 
@@ -24,7 +24,7 @@ For connecting to the EC2 instances we use SSH keys. Keys can be created with th
 
 A private and a public key are created called **my_key** and **my_key.pub**.
 
-The public key must be configured in the EC2 instance, while the private one is used for connecting to it:
+The public key is configured in the EC2 instance through Terraform, while the private one is used for connecting to it:
 
 ```bash
 > ssh -i "my_key" user@host
@@ -38,15 +38,28 @@ The following commands validate and create the infrastructure, notice how we set
 > cd ./src
 > terraform init
 > terraform validate
-> terraform plan -var='bastion_public_key=path/my_key.pub' \
-                 -var='bastion_ingress_cidr_blocks=["0.0.0.0/0"]' \
+> terraform plan -var='ec2_public_key=path-to/my_key.pub' \
+                 -var='ec2_ingress_cidr_blocks=["0.0.0.0/0"]' \
+                 -var='backend_use_eks=false' \
+                 -var='backend_user_data_file=..\user-data\backend-ubuntu.sh' \
+                 -var='db_use_aurora=true' \
                  -var='db_username=root' \
                  -var='db_password=my_password'
-> terraform apply -var='bastion_public_key=..\keys\terraform-rds' \
-                  -var='bastion_ingress_cidr_blocks=["0.0.0.0/0"]' \
+> terraform apply -var='ec2_public_key=path-to/my_key.pub' \
+                  -var='ec2_ingress_cidr_blocks=["0.0.0.0/0"]' \
+                  -var='backend_use_eks=false' \
+                  -var='backend_user_data_file=..\user-data\backend-ubuntu.sh' \
+                  -var='db_use_aurora=true' \
                   -var='db_username=root' \
                   -var='db_password=my_password' \
                   -auto-approve
+```
+
+Or using a .tfvars file:
+
+```bash
+terraform plan -var-file="my-file.tfvars"
+terraform apply -var-file="my-file.tfvars" -auto-approve
 ```
 
 ## Terraform Modules
