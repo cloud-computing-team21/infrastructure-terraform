@@ -8,42 +8,40 @@ module "vpc" {
   name = local.vpc_name
   cidr = var.vpc_cidr
 
-  azs             = local.availability_zones
-  public_subnets  = var.vpc_public_subnets
-  private_subnets = var.vpc_private_subnets
+  azs                  = local.availability_zones
+  public_subnets       = var.vpc_public_subnets
+  public_subnet_names  = local.public_subnet_names
+  private_subnets      = var.vpc_private_subnets
+  private_subnet_names = local.private_subnet_names
 
   # Configure just one NAT in the first public subnet.
   enable_nat_gateway = true
   single_nat_gateway = true
 
-  tags = merge(
-    {
-      Name = local.vpc_name
-    },
-    var.tags
-  )
+  igw_tags         = { Name = local.igw_name }
+  nat_gateway_tags = { Name = local.nat_gateway_name }
+  tags             = var.tags
 }
 
 ################################################################################
-# EC2 Bastion Host
+# EC2
 ################################################################################
 
 resource "aws_key_pair" "this" {
-  key_name   = local.bastion_key_name
-  public_key = file(var.bastion_public_key)
+  key_name   = local.ec2_key_name
+  public_key = file(var.ec2_public_key)
 
-  tags = merge(
-    {
-      Name = local.bastion_key_name
-    },
-    var.tags
-  )
+  tags = var.tags
 }
 
-module "security_group_ec2" {
+################################################################################
+# Bastion Host
+################################################################################
+
+module "bastion_security_group" {
   source = "terraform-aws-modules/security-group/aws"
 
-  name   = local.bastion_name
+  name   = local.ec2_security_group_name
   vpc_id = module.vpc.vpc_id
 
   # Allow SSH and ICMP from the CIDR blocks provided.
@@ -51,15 +49,10 @@ module "security_group_ec2" {
   ingress_rules       = ["ssh-tcp", "all-icmp"]
   egress_rules        = ["all-all"]
 
-  tags = merge(
-    {
-      Name = local.bastion_name
-    },
-    var.tags
-  )
+  tags = var.tags
 }
 
-module "ec2" {
+module "bastion_host_ec2" {
   source = "terraform-aws-modules/ec2-instance/aws"
 
   name = local.bastion_name
@@ -72,7 +65,7 @@ module "ec2" {
   subnet_id         = element(module.vpc.public_subnets, 0)
 
   # Set the previously defined security group.
-  vpc_security_group_ids = [module.security_group_ec2.security_group_id]
+  vpc_security_group_ids = [module.bastion_security_group.security_group_id]
 
   # Configure the public key.
   key_name = aws_key_pair.this.key_name
@@ -83,28 +76,69 @@ module "ec2" {
   # Optionally pass the user data as a file.
   user_data = length(var.bastion_user_data_file) > 0 ? file(var.bastion_user_data_file) : ""
 
-  tags = merge(
-    {
-      Name = local.bastion_name
-    },
-    var.tags
-  )
+  tags = var.tags
 }
 
 ################################################################################
-# RDS
+# Backend EC2
+################################################################################
+
+module "backend_security_group" {
+  source = "terraform-aws-modules/security-group/aws"
+
+  name   = local.ec2_security_group_name
+  vpc_id = module.vpc.vpc_id
+
+  # Allow SSH and ICMP from the bastion host.
+  ingress_cidr_blocks = [format("%s/32", module.bastion_host_ec2.private_ip)]
+  ingress_rules       = ["ssh-tcp", "all-icmp"]
+  egress_rules        = ["all-all"]
+
+  tags = var.tags
+}
+
+module "backend_ec2" {
+  source = "terraform-aws-modules/ec2-instance/aws"
+
+  # True for EKS, false for a single EC2.
+  count = !var.backend_use_eks ? 2 : 0
+
+  name = local.backend_names[count.index]
+
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = var.backend_instance_type
+
+  # Place the backend in both AZ and the first private subnet of the AZ.
+  availability_zone = element(data.aws_availability_zones.available.names, count.index)
+  subnet_id         = element(module.vpc.private_subnets, count.index)
+
+  # Set the previously defined security group.
+  vpc_security_group_ids = [module.backend_security_group.security_group_id]
+
+  # Configure the public key.
+  key_name = aws_key_pair.this.key_name
+
+  # Optionally pass the user data as a file.
+  user_data = length(var.backend_user_data_file) > 0 ? file(var.backend_user_data_file) : ""
+
+  tags = var.tags
+}
+
+################################################################################
+# Backend EKS
+################################################################################
+
+# TODO
+
+################################################################################
+# DB RDS
 ################################################################################
 
 resource "aws_db_subnet_group" "this" {
   name       = local.rds_subnet_group_name
   subnet_ids = module.vpc.private_subnets
 
-  tags = merge(
-    {
-      Name = local.rds_subnet_group_name
-    },
-    var.tags
-  )
+  tags = var.tags
 }
 
 module "security_group_rds" {
@@ -123,12 +157,7 @@ module "security_group_rds" {
     },
   ]
 
-  tags = merge(
-    {
-      Name = local.rds_security_group_name
-    },
-    var.tags
-  )
+  tags = var.tags
 }
 
 module "rds" {
@@ -166,16 +195,11 @@ module "rds" {
   backup_retention_period = 1
   backup_window           = "03:00-06:00"
 
-  tags = merge(
-    {
-      Name = local.rds_name
-    },
-    var.tags
-  )
+  tags = var.tags
 }
 
 ################################################################################
-# Aurora
+# DB Aurora
 ################################################################################
 
 module "rds_aurora" {
@@ -205,10 +229,5 @@ module "rds_aurora" {
   backup_retention_period = 1
   backup_window           = "03:00-06:00"
 
-  tags = merge(
-    {
-      Name = local.aurora_name
-    },
-    var.tags
-  )
+  tags = var.tags
 }
