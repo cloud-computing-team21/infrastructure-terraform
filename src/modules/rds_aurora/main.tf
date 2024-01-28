@@ -20,7 +20,12 @@ resource "aws_rds_cluster" "this" {
   preferred_backup_window = var.backup_window
   skip_final_snapshot     = true
 
-  tags = var.tags
+  tags = merge(
+    {
+      Name = var.identifier
+    },
+    var.tags
+  )
 }
 
 resource "aws_rds_cluster_instance" "this" {
@@ -36,5 +41,10 @@ resource "aws_rds_cluster_instance" "this" {
 
   availability_zone = var.availability_zones[count.index]
 
-  tags = var.tags
+  tags = merge(
+    {
+      Name = "${aws_rds_cluster.this.id}-instance-${count.index}"
+    },
+    var.tags
+  )
 }

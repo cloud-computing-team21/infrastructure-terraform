@@ -19,3 +19,8 @@ locals {
   rds_security_group_name = "rds"
   aurora_name             = "rds-aurora"
 }
+
+# CIDR Blocks.
+locals {
+  bastion_host_private_cidr_block = format("%s/32", module.bastion_host_ec2.private_ip)
+}

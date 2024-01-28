@@ -31,7 +31,12 @@ resource "aws_key_pair" "this" {
   key_name   = local.ec2_key_name
   public_key = file(var.ec2_public_key)
 
-  tags = var.tags
+  tags = merge(
+    {
+      Name = local.ec2_key_name
+    },
+    var.tags
+  )
 }
 
 ################################################################################
@@ -44,9 +49,9 @@ module "bastion_security_group" {
   name   = local.ec2_security_group_name
   vpc_id = module.vpc.vpc_id
 
-  # Allow SSH and ICMP from the CIDR blocks provided.
+  # Allow SSH, ICMP and HTTP 8080 from the CIDR blocks provided.
   ingress_cidr_blocks = var.bastion_ingress_cidr_blocks
-  ingress_rules       = ["ssh-tcp", "all-icmp"]
+  ingress_rules       = ["ssh-tcp", "all-icmp", "http-8080-tcp"]
   egress_rules        = ["all-all"]
 
   tags = var.tags
@@ -90,9 +95,20 @@ module "backend_security_group" {
   vpc_id = module.vpc.vpc_id
 
   # Allow SSH and ICMP from the bastion host.
-  ingress_cidr_blocks = [format("%s/32", module.bastion_host_ec2.private_ip)]
+  ingress_cidr_blocks = [local.bastion_host_private_cidr_block]
   ingress_rules       = ["ssh-tcp", "all-icmp"]
   egress_rules        = ["all-all"]
+
+  # Custom ingress rule for HTTP on port 9966.
+  ingress_with_cidr_blocks = [
+    {
+      from_port   = 9966
+      to_port     = 9966
+      protocol    = "tcp"
+      description = "Custom HTTP rule for port 9966"
+      cidr_blocks = local.bastion_host_private_cidr_block
+    }
+  ]
 
   tags = var.tags
 }
@@ -138,7 +154,12 @@ resource "aws_db_subnet_group" "this" {
   name       = local.rds_subnet_group_name
   subnet_ids = module.vpc.private_subnets
 
-  tags = var.tags
+  tags = merge(
+    {
+      Name = local.rds_subnet_group_name
+    },
+    var.tags
+  )
 }
 
 module "security_group_rds" {

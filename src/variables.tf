@@ -58,7 +58,7 @@ variable "bastion_ingress_cidr_blocks" {
 variable "bastion_instance_type" {
   description = "The type of the bastion host."
   type        = string
-  default     = "t4g.nano"
+  default     = "t2.micro" # Use an x86_64 instance type, our docker images are x86_64 -> https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/instance-types.html
 }
 
 variable "bastion_user_data_file" {
@@ -84,7 +84,7 @@ variable "backend_use_eks" {
 variable "backend_instance_type" {
   description = "The type of the backend EC2."
   type        = string
-  default     = "t4g.nano"
+  default     = "t2.micro" # Use an x86_64 instance type, our docker images are x86_64 -> https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/instance-types.html
 }
 
 variable "backend_user_data_file" {

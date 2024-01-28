@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Install PostgreSQL client
+sudo apt-get update
+sudo apt-get install -y postgresql-client
+
 # Add Docker's official GPG key
 sudo apt-get install -y ca-certificates curl
 sudo install -m 0755 -d /etc/apt/keyrings
@@ -13,3 +17,6 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.
 
 sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Clone the deploy repo
+git clone https://github.com/cloud-computing-team21/spring-petclinic-deploy
