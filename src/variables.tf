@@ -9,57 +9,95 @@ variable "vpc_cidr" {
   default     = "10.0.0.0/16"
 }
 
-variable "vpc_private_subnets" {
-  description = "The private subnets CIDR blocks."
-  type        = list(string)
-  default = [
-    "10.0.128.0/18",
-    "10.0.192.0/18",
-  ]
-}
-
-variable "vpc_public_subnets" {
-  description = "The public subnets CIDR blocks."
-  type        = list(string)
-  default = [
-    "10.0.0.0/18",
-    "10.0.64.0/18",
-  ]
-}
-
 variable "vpc_az_count" {
   description = "The number of Availability Zones in the VPC."
   type        = number
   default     = 2
 }
 
+variable "vpc_public_subnets" {
+  description = "The public subnets CIDR blocks."
+  type        = list(string)
+  default = [
+    "10.0.0.0/18",  # First AZ
+    "10.0.64.0/18", # Second AZ
+  ]
+}
+
+variable "vpc_private_subnets" {
+  description = "The private subnets CIDR blocks."
+  type        = list(string)
+  default = [
+    "10.0.128.0/19", # First AZ
+    "10.0.192.0/19", # Second AZ
+    "10.0.160.0/19", # First AZ
+    "10.0.224.0/19"  # Second AZ
+  ]
+}
+
 ################################################################################
-# EC2 Bastion Host
+# EC2 Common
 ################################################################################
 
-variable "bastion_public_key" {
-  description = "The path of the public key to use for the EC2 instances"
+variable "ec2_public_key" {
+  description = "The path of the public key to use for the EC2 instances."
   type        = string
   default     = null
 }
 
+################################################################################
+# Bastion Host
+################################################################################
+
 variable "bastion_ingress_cidr_blocks" {
-  description = "The CIDR block allowed for ingress connections to the EC2 instances."
+  description = "The CIDR block allowed for ingress connections to the bastion host."
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }
 
 variable "bastion_instance_type" {
-  description = "The type of the EC2 instances."
+  description = "The type of the bastion host."
   type        = string
-  default     = "t4g.nano"
+  default     = "t2.micro" # Use an x86_64 instance type, our docker images are x86_64 -> https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/instance-types.html
 }
 
 variable "bastion_user_data_file" {
-  description = "An optional file to upload to the EC2 as user data."
+  description = "An optional file to upload to the bastion host as user data."
   type        = string
   default     = ""
 }
+
+################################################################################
+# Backend Common 
+################################################################################
+
+variable "backend_use_eks" {
+  description = "Set to true for using AWS EKS instead of a single EC2 instance for the backend."
+  type        = bool
+  default     = false
+}
+
+################################################################################
+# Backend EC2
+################################################################################
+
+variable "backend_instance_type" {
+  description = "The type of the backend EC2."
+  type        = string
+  default     = "t2.micro" # Use an x86_64 instance type, our docker images are x86_64 -> https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/instance-types.html
+}
+
+variable "backend_user_data_file" {
+  description = "An optional file to upload to the backend EC2 as user data."
+  type        = string
+  default     = ""
+}
+
+################################################################################
+# Backend EKS
+################################################################################
+
+# TODO
 
 ################################################################################
 # DB Common
@@ -82,7 +120,7 @@ variable "db_use_aurora" {
 }
 
 ################################################################################
-# RDS
+# DB RDS
 ################################################################################
 
 variable "rds_engine" {
@@ -134,7 +172,7 @@ variable "rds_max_allocated_storage" {
 }
 
 ################################################################################
-# Aurora
+# DB Aurora
 ################################################################################
 
 variable "aurora_engine" {
@@ -169,8 +207,8 @@ variable "tags" {
   description = "A map of tags to add to all resources."
   type        = map(string)
   default = {
-    GithubRepo         = "cloud-computing-team21"
-    PostgraduateCourse = "UPC Cloud Computing"
-    Project            = "Final Postgraduate Project - Team 21"
+    Github  = "https://github.com/cloud-computing-team21"
+    Course  = "UPC Cloud Computing"
+    Project = "Final Postgraduate Project - Team 21"
   }
 }

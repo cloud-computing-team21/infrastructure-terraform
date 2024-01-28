@@ -26,6 +26,13 @@ resource "aws_db_instance" "master" {
 
   # True for master-standby replication along the subnet group assigned before.
   multi_az = true
+
+  tags = merge(
+    {
+      Name = var.db_name
+    },
+    var.tags
+  )
 }
 
 resource "aws_db_instance" "read_replica" {
@@ -51,4 +58,11 @@ resource "aws_db_instance" "read_replica" {
   backup_retention_period = var.backup_retention_period
   backup_window           = var.backup_window
   skip_final_snapshot     = true
+
+  tags = merge(
+    {
+      Name = "${var.identifier}-read-replica"
+    },
+    var.tags
+  )
 }
