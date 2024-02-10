@@ -1,3 +1,20 @@
+
+################################################################################
+# Common
+################################################################################
+
+resource "aws_key_pair" "this" {
+  key_name   = local.ec2_key_name
+  public_key = file(var.public_key)
+
+  tags = merge(
+    {
+      Name = local.ec2_key_name
+    },
+    var.tags
+  )
+}
+
 ################################################################################
 # VPC
 ################################################################################
@@ -25,22 +42,6 @@ module "vpc" {
 }
 
 ################################################################################
-# EC2
-################################################################################
-
-resource "aws_key_pair" "this" {
-  key_name   = local.ec2_key_name
-  public_key = file(var.ec2_public_key)
-
-  tags = merge(
-    {
-      Name = local.ec2_key_name
-    },
-    var.tags
-  )
-}
-
-################################################################################
 # Bastion Host
 ################################################################################
 
@@ -50,9 +51,9 @@ module "bastion_security_group" {
   name   = local.ec2_security_group_name
   vpc_id = module.vpc.vpc_id
 
-  # Allow SSH, ICMP and HTTP 8080 from the CIDR blocks provided.
+  # Allow SSH and ICMP from the CIDR blocks provided.
   ingress_cidr_blocks = var.bastion_ingress_cidr_blocks
-  ingress_rules       = ["ssh-tcp", "all-icmp", "http-8080-tcp"]
+  ingress_rules       = ["ssh-tcp", "all-icmp"]
   egress_rules        = ["all-all"]
 
   tags = var.tags
@@ -86,10 +87,10 @@ module "bastion_host_ec2" {
 }
 
 ################################################################################
-# Backend EC2
+# EC2
 ################################################################################
 
-module "backend_security_group" {
+module "ec2_security_group" {
   source = "terraform-aws-modules/security-group/aws"
 
   name   = local.ec2_security_group_name
@@ -114,47 +115,55 @@ module "backend_security_group" {
   tags = var.tags
 }
 
-module "backend_ec2" {
+module "ec2" {
   source = "terraform-aws-modules/ec2-instance/aws"
 
-  # True for EKS, false for a single EC2.
-  count = !var.backend_use_eks ? 2 : 0
+  # True for adding an EC2 instance to the first private subnet of each AZ.
+  count = var.use_ec2 ? var.vpc_az_count : 0
 
-  name = local.backend_names[count.index]
+  name = local.ec2_names[count.index]
 
   ami           = data.aws_ami.ubuntu.id
-  instance_type = var.backend_instance_type
+  instance_type = var.ec2_instance_type
 
-  # Place the backend in both AZ and the first private subnet of the AZ.
+  # Place the EC2 in the first private subnet of each AZ.
   availability_zone = element(data.aws_availability_zones.available.names, count.index)
   subnet_id         = element(module.vpc.private_subnets, count.index)
 
   # Set the previously defined security group.
-  vpc_security_group_ids = [module.backend_security_group.security_group_id]
+  vpc_security_group_ids = [module.ec2_security_group.security_group_id]
 
   # Configure the public key.
   key_name = aws_key_pair.this.key_name
 
   # Optionally pass the user data as a file.
-  user_data = length(var.backend_user_data_file) > 0 ? file(var.backend_user_data_file) : ""
+  user_data = length(var.ec2_user_data_file) > 0 ? file(var.ec2_user_data_file) : ""
 
   tags = var.tags
 }
 
 ################################################################################
-# Backend EKS
+# EKS
 ################################################################################
 
 module "eks" {
-  source   = "./modules/eks"
-  lab_role = var.eks_lab_role
+  source = "./modules/eks"
 
+  cluster_name    = local.eks_cluster_name
+  cluster_version = var.eks_cluster_version
+
+  # The VPC information where the EKS will be provisioned.
   vpc_id              = module.vpc.vpc_id
   vpc_private_subnets = module.vpc.private_subnets
+
+  # The IAM role, use the LabRole if deploying in Academy.
+  iam_role_arn = var.eks_iam_role_arn
+
+  tags = var.tags
 }
 
 ################################################################################
-# DB RDS
+# RDS
 ################################################################################
 
 resource "aws_db_subnet_group" "this" {
@@ -191,8 +200,8 @@ module "security_group_rds" {
 module "rds" {
   source = "./modules/rds"
 
-  # True for Aurora, false for RDS.
-  count = !var.db_use_aurora ? 1 : 0
+  # True for RDS, false for Aurora.
+  count = var.use_rds ? 1 : 0
 
   identifier = local.rds_name
   db_name    = local.rds_name
@@ -227,14 +236,14 @@ module "rds" {
 }
 
 ################################################################################
-# DB Aurora
+# Aurora
 ################################################################################
 
 module "rds_aurora" {
   source = "./modules/rds_aurora"
 
-  # True for Aurora, false for RDS.
-  count = var.db_use_aurora ? 1 : 0
+  # True for RDS, false for Aurora.
+  count = !var.use_rds ? 1 : 0
 
   identifier = local.aurora_name
 

@@ -38,21 +38,20 @@ The following commands validate and create the infrastructure, notice how we set
 > cd ./src
 > terraform init
 > terraform validate
-> terraform plan -var='ec2_public_key=path-to/my_key.pub' \
-                 -var='ec2_ingress_cidr_blocks=["0.0.0.0/0"]' \
-                 -var='backend_use_eks=false' \
-                 -var='backend_user_data_file=..\user-data\backend-ubuntu.sh' \
-                 -var='db_use_aurora=true' \
+> terraform plan -var='public_key=path-to/my_key.pub' \
+                 -var='bastion_ingress_cidr_blocks=["0.0.0.0/0"]' \
+                 -var='bastion_user_data_file=..\user-data\bastion-ubuntu.sh \
+                 -var='ec2_user_data_file=..\user-data\ec2-ubuntu.sh' \
+                 -var='eks_iam_role_arn=your-role' \
                  -var='db_username=root' \
                  -var='db_password=my_password'
-> terraform apply -var='ec2_public_key=path-to/my_key.pub' \
-                  -var='ec2_ingress_cidr_blocks=["0.0.0.0/0"]' \
-                  -var='backend_use_eks=false' \
-                  -var='backend_user_data_file=..\user-data\backend-ubuntu.sh' \
-                  -var='db_use_aurora=true' \
-                  -var='db_username=root' \
-                  -var='db_password=my_password' \
-                  -auto-approve
+> terraform apply -var='public_key=path-to/my_key.pub' \
+                 -var='bastion_ingress_cidr_blocks=["0.0.0.0/0"]' \
+                 -var='bastion_user_data_file=..\user-data\bastion-ubuntu.sh \
+                 -var='ec2_user_data_file=..\user-data\ec2-ubuntu.sh' \
+                 -var='eks_iam_role_arn=your-role' \
+                 -var='db_username=root' \
+                 -var='db_password=my_password'
 ```
 
 Or using a .tfvars file:
@@ -75,6 +74,6 @@ As well as custom ones, currently under the **modules** folder:
 - [RDS](./src/modules/rds/main.tf)
 - [Aurora](./src/modules/aurora/main.tf)
 
-## Temp EKS
+## TODO: EKS AWS module with Academy Temporary Fix
 
-.terraform/modukes/eks.eks/maing.tf - Remove data "aws_iam_session_context" and remove from 'key_administrators        = coalescelist(var.kms_key_administrators, [data.aws_iam_session_context.current.issuer_arn])'.
+Go to .terraform/modukes/eks.eks/main.tf and remove the data **aws_iam_session_context**, also remove it from **key_administrators**.
