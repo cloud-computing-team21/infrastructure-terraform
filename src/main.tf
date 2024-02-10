@@ -154,7 +154,7 @@ module "eks" {
 
   # The VPC information where the EKS will be provisioned.
   vpc_id              = module.vpc.vpc_id
-  vpc_private_subnets = module.vpc.private_subnets
+  vpc_private_subnets = [module.vpc.private_subnets[0], module.vpc.private_subnets[1]]
 
   # The IAM role, use the LabRole if deploying in Academy.
   iam_role_arn = var.eks_iam_role_arn
