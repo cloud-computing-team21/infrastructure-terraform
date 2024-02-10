@@ -3,16 +3,17 @@
 ################################################################################
 
 module "vpc" {
-  source = "terraform-aws-modules/vpc/aws"
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "3.14.3"
 
   name = local.vpc_name
   cidr = var.vpc_cidr
 
-  azs                  = local.availability_zones
-  public_subnets       = var.vpc_public_subnets
-  public_subnet_names  = local.public_subnet_names
-  private_subnets      = var.vpc_private_subnets
-  private_subnet_names = local.private_subnet_names
+  azs            = local.availability_zones
+  public_subnets = var.vpc_public_subnets
+  #   public_subnet_names  = local.public_subnet_names
+  private_subnets = var.vpc_private_subnets
+  #   private_subnet_names = local.private_subnet_names
 
   # Configure just one NAT in the first public subnet.
   enable_nat_gateway = true
@@ -144,7 +145,13 @@ module "backend_ec2" {
 # Backend EKS
 ################################################################################
 
-# TODO
+module "eks" {
+  source   = "./modules/eks"
+  lab_role = var.eks_lab_role
+
+  vpc_id              = module.vpc.vpc_id
+  vpc_private_subnets = module.vpc.private_subnets
+}
 
 ################################################################################
 # DB RDS
