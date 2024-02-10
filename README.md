@@ -74,3 +74,7 @@ As well as custom ones, currently under the **modules** folder:
 
 - [RDS](./src/modules/rds/main.tf)
 - [Aurora](./src/modules/aurora/main.tf)
+
+## Temp EKS
+
+.terraform/modukes/eks.eks/maing.tf - Remove data "aws_iam_session_context" and remove from 'key_administrators        = coalescelist(var.kms_key_administrators, [data.aws_iam_session_context.current.issuer_arn])'.

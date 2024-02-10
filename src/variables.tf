@@ -97,7 +97,10 @@ variable "backend_user_data_file" {
 # Backend EKS
 ################################################################################
 
-# TODO
+variable "eks_lab_role" {
+  description = "The LabRole of the user."
+  type        = string
+}
 
 ################################################################################
 # DB Common
