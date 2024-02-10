@@ -1,9 +1,9 @@
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "19.21.0"
+  version = "19.1.0"
 
-  cluster_name    = "dei-eks"
-  cluster_version = "1.29"
+  cluster_name    = var.cluster_name
+  cluster_version = var.cluster_version
 
   cluster_endpoint_private_access = true
   cluster_endpoint_public_access  = true
@@ -12,10 +12,8 @@ module "eks" {
   subnet_ids = var.vpc_private_subnets
 
   create_iam_role = false
-
-  iam_role_arn = var.lab_role
-
-  enable_irsa = false
+  iam_role_arn    = var.iam_role_arn
+  enable_irsa     = false
 
   kms_key_enable_default_policy = true
 
@@ -30,7 +28,7 @@ module "eks" {
       max_size     = 4
 
       create_iam_role = false
-      iam_role_arn    = var.lab_role
+      iam_role_arn    = var.iam_role_arn
 
       labels = {
         role = "general"
@@ -46,7 +44,7 @@ module "eks" {
       max_size     = 3
 
       create_iam_role = false
-      iam_role_arn    = var.lab_role
+      iam_role_arn    = var.iam_role_arn
 
       labels = {
         role = "spot"
@@ -77,4 +75,11 @@ module "eks" {
       most_recent = true
     }
   }
+
+  tags = merge(
+    {
+      Name = var.cluster_name
+    },
+    var.tags
+  )
 }
