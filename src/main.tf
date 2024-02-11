@@ -151,6 +151,7 @@ module "eks" {
 
   cluster_name    = local.eks_cluster_name
   cluster_version = var.eks_cluster_version
+  cluster_region = var.region
 
   # The VPC information where the EKS will be provisioned.
   vpc_id              = module.vpc.vpc_id

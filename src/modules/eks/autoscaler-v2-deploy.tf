@@ -8,7 +8,7 @@ resource "helm_release" "cluster_autoscaler" {
 
   set {
     name  = "awsRegion"
-    value = "us-east-1"
+    value = var.cluster_region
   }
 
   set {
@@ -18,7 +18,7 @@ resource "helm_release" "cluster_autoscaler" {
 
   set {
     name  = "autoscalingGroups[0].name"
-    value = "eks-general-20240210101243824300000008-10c6c940-a683-b066-b9d0-9c7bb0f99250"
+    value = module.eks.eks_managed_node_groups["general"].node_group_autoscaling_group_names[0]
   }
 
   set {

@@ -18,7 +18,7 @@ module "eks" {
   kms_key_enable_default_policy = true
 
   eks_managed_node_group_defaults = {
-    disk_size = 50
+    disk_size = 20
   }
 
   eks_managed_node_groups = {
@@ -34,7 +34,7 @@ module "eks" {
         role = "general"
       }
 
-      instance_types = ["t3.small"]
+      instance_types = ["t3.medium", "t3.large"]
       capacity_type  = "ON_DEMAND"
     }
 
@@ -56,7 +56,7 @@ module "eks" {
         effect = "NO_SCHEDULE"
       }]
 
-      instance_types = ["t3.micro"]
+      instance_types = ["t3.medium", "t3.large"]
       capacity_type  = "SPOT"
     }
   }
