@@ -8,6 +8,11 @@ variable "cluster_version" {
   type        = string
 }
 
+variable "cluster_region" {
+  description = "Region where the EKS cluster is deployed."
+  type        = string
+}
+
 variable "vpc_id" {
   description = "The ID of the VPC to which the EKS cluster will be added."
   type        = string
