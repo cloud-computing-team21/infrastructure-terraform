@@ -23,9 +23,9 @@ module "eks" {
 
   eks_managed_node_groups = {
     general = {
-      desired_size = 3
+      desired_size = 1
       min_size     = 1
-      max_size     = 4
+      max_size     = 3
 
       create_iam_role = false
       iam_role_arn    = var.iam_role_arn
@@ -39,7 +39,7 @@ module "eks" {
     }
 
     spot = {
-      desired_size = 1
+      desired_size = 2
       min_size     = 1
       max_size     = 3
 
