@@ -10,7 +10,7 @@ variable "region" {
 }
 
 variable "use_ec2" {
-  description = "Set to true to add an EC2 instance to the first privates subnet of each AZ."
+  description = "Set to true to add an EC2 instance to the first private subnet of each AZ."
   type        = bool
   default     = false
 }
