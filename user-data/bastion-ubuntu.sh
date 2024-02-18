@@ -20,3 +20,4 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plug
 
 # Clone the deploy repo
 git clone https://github.com/cloud-computing-team21/spring-petclinic-deploy
+sudo chmod +x /spring-petclinic-deploy/int/db/migrate-db.sh
