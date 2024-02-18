@@ -13,7 +13,8 @@ locals {
   ec2_key_name            = "key-ec2"
   ec2_security_group_name = "ec2"
   bastion_name            = "bastion-host"
-  backend_names           = [for i in range(length(local.availability_zones)) : format("backend-%d", i + 1)]
+  ec2_names               = [for i in range(length(local.availability_zones)) : format("ec2-%d", i + 1)]
+  eks_cluster_name        = "eks-cluster"
   rds_name                = "rds"
   rds_subnet_group_name   = "rds-subnet-group"
   rds_security_group_name = "rds"

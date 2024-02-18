@@ -1,5 +1,43 @@
 
 ################################################################################
+# Common
+################################################################################
+
+variable "region" {
+  description = "The selected AWS region."
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "use_ec2" {
+  description = "Set to true to add an EC2 instance to the first privates subnet of each AZ."
+  type        = bool
+  default     = false
+}
+
+variable "use_rds" {
+  description = "Set to true to use Amazon RDS as the database or false to use Amazon Aurora."
+  type        = bool
+  default     = true
+}
+
+variable "public_key" {
+  description = "The path of the public key to use for the EC2 instances."
+  type        = string
+  default     = null
+}
+
+variable "tags" {
+  description = "A map of tags to add to all resources."
+  type        = map(string)
+  default = {
+    Github  = "https://github.com/cloud-computing-team21"
+    Course  = "UPC Cloud Computing"
+    Project = "Final Postgraduate Project - Team 21"
+  }
+}
+
+################################################################################
 # VPC
 ################################################################################
 
@@ -36,16 +74,6 @@ variable "vpc_private_subnets" {
 }
 
 ################################################################################
-# EC2 Common
-################################################################################
-
-variable "ec2_public_key" {
-  description = "The path of the public key to use for the EC2 instances."
-  type        = string
-  default     = null
-}
-
-################################################################################
 # Bastion Host
 ################################################################################
 
@@ -68,39 +96,38 @@ variable "bastion_user_data_file" {
 }
 
 ################################################################################
-# Backend Common 
+# EC2
 ################################################################################
 
-variable "backend_use_eks" {
-  description = "Set to true for using AWS EKS instead of a single EC2 instance for the backend."
-  type        = bool
-  default     = false
-}
-
-################################################################################
-# Backend EC2
-################################################################################
-
-variable "backend_instance_type" {
-  description = "The type of the backend EC2."
+variable "ec2_instance_type" {
+  description = "The type of the EC2."
   type        = string
   default     = "t2.micro" # Use an x86_64 instance type, our docker images are x86_64 -> https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/instance-types.html
 }
 
-variable "backend_user_data_file" {
-  description = "An optional file to upload to the backend EC2 as user data."
+variable "ec2_user_data_file" {
+  description = "An optional file to upload to the EC2 as user data."
   type        = string
   default     = ""
 }
 
 ################################################################################
-# Backend EKS
+# EKS
 ################################################################################
 
-# TODO
+variable "eks_cluster_version" {
+  description = "Kubernetes version to use for the EKS cluster."
+  type        = string
+  default     = "1.29"
+}
+
+variable "eks_iam_role_arn" {
+  description = "The IAM role ARN for the EKS cluster."
+  type        = string
+}
 
 ################################################################################
-# DB Common
+# DB
 ################################################################################
 
 variable "db_username" {
@@ -113,14 +140,8 @@ variable "db_password" {
   type        = string
 }
 
-variable "db_use_aurora" {
-  description = "Set to true for using Amazon Aurora instead of Amazon RDS."
-  type        = bool
-  default     = false
-}
-
 ################################################################################
-# DB RDS
+# RDS
 ################################################################################
 
 variable "rds_engine" {
@@ -172,7 +193,7 @@ variable "rds_max_allocated_storage" {
 }
 
 ################################################################################
-# DB Aurora
+# Aurora
 ################################################################################
 
 variable "aurora_engine" {
@@ -191,24 +212,4 @@ variable "aurora_instance_class" {
   description = "The class of the Aurora instance."
   type        = string
   default     = "db.t4g.medium"
-}
-
-################################################################################
-# Common
-################################################################################
-
-variable "region" {
-  description = "The selected AWS region."
-  type        = string
-  default     = "us-east-1"
-}
-
-variable "tags" {
-  description = "A map of tags to add to all resources."
-  type        = map(string)
-  default = {
-    Github  = "https://github.com/cloud-computing-team21"
-    Course  = "UPC Cloud Computing"
-    Project = "Final Postgraduate Project - Team 21"
-  }
 }
