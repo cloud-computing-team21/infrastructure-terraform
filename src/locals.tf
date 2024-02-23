@@ -15,7 +15,7 @@ locals {
   bastion_name            = "bastion-host"
   ec2_names               = [for i in range(length(local.availability_zones)) : format("ec2-%d", i + 1)]
   eks_cluster_name        = "eks-cluster"
-  rds_name                = "rds"
+  rds_name                = "petclinic"
   rds_subnet_group_name   = "rds-subnet-group"
   rds_security_group_name = "rds"
   aurora_name             = "rds-aurora"
