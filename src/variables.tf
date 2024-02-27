@@ -126,6 +126,12 @@ variable "eks_iam_role_arn" {
   type        = string
 }
 
+variable "eks_instance_types" {
+  description = "Set of instance types associated with the EKS Node Group."
+  type        = list(string)
+  default     = ["t3.medium", "t3.large"]
+}
+
 ################################################################################
 # DB
 ################################################################################
