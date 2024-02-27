@@ -63,3 +63,6 @@ replay_pid*
 
 # Custom keys
 **/.keys/*
+
+# Infracost
+**/infracost-base.json

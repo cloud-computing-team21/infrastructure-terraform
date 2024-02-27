@@ -33,3 +33,9 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "eks_instance_types" {
+  description = "Set of instance types associated with the EKS Node Group."
+  type        = list(string)
+  default     = []
+}

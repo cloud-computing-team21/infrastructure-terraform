@@ -151,11 +151,14 @@ module "eks" {
 
   cluster_name    = local.eks_cluster_name
   cluster_version = var.eks_cluster_version
-  cluster_region = var.region
+  cluster_region  = var.region
 
   # The VPC information where the EKS will be provisioned.
   vpc_id              = module.vpc.vpc_id
   vpc_private_subnets = [module.vpc.private_subnets[0], module.vpc.private_subnets[1]]
+
+  # EC2 instance types.
+  eks_instance_types = var.eks_instance_types
 
   # The IAM role, use the LabRole if deploying in Academy.
   iam_role_arn = var.eks_iam_role_arn
