@@ -23,5 +23,5 @@ locals {
 
 # CIDR Blocks.
 locals {
-  bastion_host_private_cidr_block = format("%s/32", module.bastion_host_ec2.private_ip)
+  bastion_host_private_cidr_blocks = [for bastion_host in module.bastion_hosts : format("%s/32", bastion_host.private_ip)]
 }
