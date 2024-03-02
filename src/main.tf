@@ -59,8 +59,11 @@ module "bastion_security_group" {
   tags = var.tags
 }
 
-module "bastion_host_ec2" {
+module "bastion_hosts" {
   source = "terraform-aws-modules/ec2-instance/aws"
+
+  # One for each AZ.
+  count = var.vpc_az_count
 
   name = local.bastion_name
 
@@ -68,7 +71,7 @@ module "bastion_host_ec2" {
   instance_type = var.bastion_instance_type
 
   # Place the bastion in the first AZ and public subnet.
-  availability_zone = element(data.aws_availability_zones.available.names, 0)
+  availability_zone = element(data.aws_availability_zones.available.names, count.index)
   subnet_id         = element(module.vpc.public_subnets, 0)
 
   # Set the previously defined security group.
@@ -90,14 +93,17 @@ module "bastion_host_ec2" {
 # EC2
 ################################################################################
 
-module "ec2_security_group" {
+module "ec2_security_groups" {
   source = "terraform-aws-modules/security-group/aws"
+
+  # True for adding an EC2 instance to the first private subnet of each AZ.
+  count = var.use_ec2 ? var.vpc_az_count : 0
 
   name   = local.ec2_security_group_name
   vpc_id = module.vpc.vpc_id
 
   # Allow SSH and ICMP from the bastion host.
-  ingress_cidr_blocks = [local.bastion_host_private_cidr_block]
+  ingress_cidr_blocks = [local.bastion_host_private_cidr_blocks[count.index]]
   ingress_rules       = ["ssh-tcp", "all-icmp"]
   egress_rules        = ["all-all"]
 
@@ -108,7 +114,7 @@ module "ec2_security_group" {
       to_port     = 9966
       protocol    = "tcp"
       description = "Custom HTTP rule for port 9966"
-      cidr_blocks = local.bastion_host_private_cidr_block
+      cidr_blocks = local.bastion_host_private_cidr_blocks[count.index]
     }
   ]
 
@@ -131,7 +137,7 @@ module "ec2" {
   subnet_id         = element(module.vpc.private_subnets, count.index)
 
   # Set the previously defined security group.
-  vpc_security_group_ids = [module.ec2_security_group.security_group_id]
+  vpc_security_group_ids = [module.ec2_security_groups[count.index].security_group_id]
 
   # Configure the public key.
   key_name = aws_key_pair.this.key_name
