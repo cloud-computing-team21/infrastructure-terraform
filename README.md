@@ -73,7 +73,3 @@ As well as custom ones, currently under the **modules** folder:
 
 - [RDS](./src/modules/rds/main.tf)
 - [Aurora](./src/modules/aurora/main.tf)
-
-## TODO: EKS AWS module with Academy Temporary Fix
-
-Go to .terraform/modukes/eks.eks/main.tf and remove the data **aws_iam_session_context**, also remove it from **key_administrators**.
