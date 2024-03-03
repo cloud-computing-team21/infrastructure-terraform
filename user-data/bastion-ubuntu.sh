@@ -19,5 +19,5 @@ sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 # Clone the deploy repo
-git clone https://github.com/cloud-computing-team21/spring-petclinic-deploy
-sudo chmod +x /spring-petclinic-deploy/int/db/migrate-db.sh
+git clone https://github.com/cloud-computing-team21/spring-petclinic-kube-deploy
+sudo chmod +x /spring-petclinic-kube-deploy/middleware/bbdd/migrate-db.sh
