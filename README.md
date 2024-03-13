@@ -2,6 +2,30 @@
 
 Terraform infrastructure for the Final Project of the [UPC Cloud Computing Architecture Postgraduate](https://www.talent.upc.edu/ing/estudis/formacio/curs/319401/postgraduate-course-cloud-computing-architecture/) course.
 
+### Commands
+
+The following commands validate and create the infrastructure, notice how we set the public key for the EC2 bastion with **bastion_public_key**:
+
+```bash
+> cd ./src
+> terraform init
+> terraform validate
+> terraform plan/apply
+            -var='public_key=../.keys/my_key.pub' \
+            -var='bastion_ingress_cidr_blocks=["0.0.0.0/0"]' \
+            -var='bastion_user_data_file=../user-data/bastion-ubuntu.sh' \
+            -var='eks_iam_role_arn=arn:aws:iam::497558676238:role/LabRole' \
+            -var='db_username=root' \
+            -var='db_password=petclinic'
+```
+
+Or using a .tfvars file:
+
+```bash
+terraform plan -var-file="variables.tfvars"
+terraform apply -var-file="variables.tfvars" -auto-approve
+```
+
 ## Network
 
 The infrastructure consists of a single VPC with CIDR block of **10.0.0.0/16**, divided into two Availability Zones (AZ), each one hosting a subnet.
@@ -30,37 +54,6 @@ The public key is configured in the EC2 instance through Terraform, while the pr
 > ssh -i "my_key" user@host
 ```
 
-### Commands
-
-The following commands validate and create the infrastructure, notice how we set the public key for the EC2 bastion with **bastion_public_key**:
-
-```bash
-> cd ./src
-> terraform init
-> terraform validate
-> terraform plan -var='public_key=path-to/my_key.pub' \
-                 -var='bastion_ingress_cidr_blocks=["0.0.0.0/0"]' \
-                 -var='bastion_user_data_file=..\user-data\bastion-ubuntu.sh \
-                 -var='ec2_user_data_file=..\user-data\ec2-ubuntu.sh' \
-                 -var='eks_iam_role_arn=your-role' \
-                 -var='db_username=root' \
-                 -var='db_password=my_password'
-> terraform apply -var='public_key=path-to/my_key.pub' \
-                 -var='bastion_ingress_cidr_blocks=["0.0.0.0/0"]' \
-                 -var='bastion_user_data_file=..\user-data\bastion-ubuntu.sh \
-                 -var='ec2_user_data_file=..\user-data\ec2-ubuntu.sh' \
-                 -var='eks_iam_role_arn=your-role' \
-                 -var='db_username=root' \
-                 -var='db_password=my_password'
-```
-
-Or using a .tfvars file:
-
-```bash
-terraform plan -var-file="my-file.tfvars"
-terraform apply -var-file="my-file.tfvars" -auto-approve
-```
-
 ## Terraform Modules
 
 This repo uses some of the AWS official modules:
@@ -68,8 +61,10 @@ This repo uses some of the AWS official modules:
 - [terraform-aws-modules/vpc/aws](https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest)
 - [terraform-aws-modules/security-group/aws](https://registry.terraform.io/modules/terraform-aws-modules/security-group/aws/latest)
 - [terraform-aws-modules/ec2-instance/aws](https://registry.terraform.io/modules/terraform-aws-modules/ec2-instance/aws/latest)
+- [terraform-aws-modules/eks/aws](https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/19.1.0)
 
 As well as custom ones, currently under the **modules** folder:
 
 - [RDS](./src/modules/rds/main.tf)
 - [Aurora](./src/modules/aurora/main.tf)
+- [EKS](./src/modules/eks/main.tf)
